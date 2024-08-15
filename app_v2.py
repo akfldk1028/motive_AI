@@ -19,7 +19,10 @@ import io
 app = Flask(__name__)
 logger = get_logger()
 
-base_url = "http://127.0.0.1:8000/api/v1"
+base_url = os.environ.get('BASE_URL', "https://backend.motive.beauty/api/v1")
+
+
+
 def load_image_from_url(url):
     response = requests.get(url)
     return Image.open(io.BytesIO(response.content))
@@ -256,5 +259,7 @@ def get_model_name_from_id(ai_tool_id):
 
 
 if __name__ == '__main__':
-    logger.info("Starting Flask server...")
-    app.run(debug=True, use_reloader=False)
+    logger.info(f"Starting Flask server with BASE_URL: {base_url}")
+    app.run(host='0.0.0.0', port=5000)
+    # logger.info("Starting Flask server...")
+    # app.run(debug=True, use_reloader=False)
