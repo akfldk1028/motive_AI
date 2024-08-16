@@ -15,7 +15,7 @@ RUN git clone "https://github.com/akfldk1028/motive_AI.git" .
 # requirements.txt 파일이 있다면 의존성 설치
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Hugging Face 모델 다운로드 스크립트 복사
 COPY download_models.py .
