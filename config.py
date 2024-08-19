@@ -3,49 +3,49 @@
 AI_MODELS = {
     'RealisticVision': {
         'type': 'checkpoint',
-        'path': './models/checkpoints/realisticVisionV60B1_v51HyperVAE.safetensors',
+        'path': './motive_v1/models/checkpoints/realisticVisionV60B1_v51HyperVAE.safetensors',
         'app': 'RealisticVision',
         'test': True,
         'sampler': ['ddpm_sde', 'euler_ancestral']
     },
     'Architecture RealMix': {
         'type': 'checkpoint',
-        'path': './models/checkpoints/architecturerealmix_v11.safetensors',
+        'path': './motive_v1/models/checkpoints/architecturerealmix_v11.safetensors',
         'app': 'ArchitectureRealMix',
         'test': True,
 
     },
     'ReRender': {
         'type': 'checkpoint',
-        'path': './models/checkpoints/raRenderArchitectureRender_v33.safetensors',
+        'path': './motive_v1/models/checkpoints/raRenderArchitectureRender_v33.safetensors',
         'app': 'ReRender',
         'test': True,
         'sampler': ['ddpm_sde', 'euler_ancestral']
     },
     'Zach illustration': {
         'type': 'lora',
-        'path': './models/lora/zarch_illustration.safetensors',
+        'path': './motive_v1/models/lora/zarch_illustration.safetensors',
         'app': 'ZachIllustration',
         'baseCheckpoint': 'Architecture RealMix',
         'secondCheckpoint': 'RealisticVision'
     },
     'Modern Interior': {
         'type': 'lora',
-        'path': './models/lora/mordernInterior.safetensors',
+        'path': './motive_v1/models/lora/mordernInterior.safetensors',
         'app': 'Lora',
         'url': '',
         'defaultPrompt': '',
     },
     'Building Model': {
         'type': 'lora',
-        'path': './models/lora/Manualbuildingmodel.safetensors',
+        'path': './motive_v1/models/lora/Manualbuildingmodel.safetensors',
         'app': 'BuildingModel',
         'test': True,
         'baseCheckpoint': 'ReRender',
     },
     'SDXL': {
         'type': 'checkpoint',
-        'path': './models/SDXL_base_model',
+        'path': './motive_v1/models/SDXL_base_model',
         'app': 'SDXL'
     }
 }
@@ -53,19 +53,19 @@ AI_MODELS = {
 CONTROLNET_MODELS = {
     'SD': {
         'CANNY': {
-            'path': './models/controlnet/control_v11p_sd15_canny',
+            'path': './motive_v1/models/controlnet/control_v11p_sd15_canny',
             'preprocessor': 'canny',
             'type': "canny",
 
         },
         'DEPTH': {
-            'path': "./models/controlnet/control_v11f1p_sd15_depth",
+            'path': "./motive_v1/models/controlnet/control_v11f1p_sd15_depth",
             'preprocessor': 'depth',
             'type': "depth",
 
         },
         'SEGMENTATION': {
-            'path': "./models/controlnet/control_v11p_sd15_seg",
+            'path': "./motive_v1/models/controlnet/control_v11p_sd15_seg",
             'preprocessor': 'segmentation',
             'type': "segmentation",
 
@@ -76,13 +76,13 @@ CONTROLNET_MODELS = {
     },
     'SDXL': {
         'CANNY': {
-            'path': './models/controlnet/controlnet-depth-sdxl-1.0',
+            'path': './motive_v1/models/controlnet/controlnet-depth-sdxl-1.0',
             'preprocessor': 'canny',
             'type': "canny",
 
         },
         'DEPTH': {
-            'path': './models/controlnet/controlnet-depth-sdxl-1.0',
+            'path': './motive_v1/models/controlnet/controlnet-depth-sdxl-1.0',
             'preprocessor': 'SDXLdepth',
             'type': "depth",
 
