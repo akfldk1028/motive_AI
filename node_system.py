@@ -212,7 +212,7 @@ class SDXLControlNetStrategy(ModelStrategy):
             try:
                 print("Refiner 모델 로딩 중")
                 refiner_path = model_path.replace("SDXL_base_model", "SDXL_refiner_model")
-                self.refiner_model = StableDiffusionXLPipeline.from_pretrained(
+                self.refiner_model = DiffusionPipeline.from_pretrained(
                     refiner_path,
                     text_encoder_2=self.base_model.text_encoder_2,
                     vae=self.base_model.vae,
