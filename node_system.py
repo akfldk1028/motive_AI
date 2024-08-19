@@ -109,15 +109,14 @@ class LoraControlNetStrategy(ModelStrategy):
         control_images = kwargs.get("image", [])
         if not isinstance(control_images, list):
             control_images = [control_images]
-
         # ControlNet 모델 수 확인
         num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
 
         if len(control_images) != num_controlnets:
             raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
 
-        # batch_size만큼 control_images를 반복
-        batched_control_images = control_images * batch_size
+        # batch_size만큼 control_images를 복제
+        batched_control_images = [image for image in control_images for _ in range(batch_size)]
 
         return pipe(
             prompt=[prompt] * batch_size,
@@ -284,8 +283,9 @@ class SDXLControlNetStrategy(ModelStrategy):
         if len(control_images) != num_controlnets:
             raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
 
-        # batch_size만큼 control_images를 반복
-        batched_control_images = control_images * batch_size
+        # batch_size만큼 control_images를 복제
+        batched_control_images = [image for image in control_images for _ in range(batch_size)]
+
         # Base 모델로 이미지 생성
         latents = self.base_model(
             prompt=[prompt] * batch_size,
@@ -544,8 +544,8 @@ class ControlNetStrategy(ModelStrategy):
         if len(control_images) != num_controlnets:
             raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
 
-        # batch_size만큼 control_images를 반복
-        batched_control_images = control_images * batch_size
+        # batch_size만큼 control_images를 복제
+        batched_control_images = [image for image in control_images for _ in range(batch_size)]
 
         return pipe(
             prompt=[prompt] * batch_size,
