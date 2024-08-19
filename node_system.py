@@ -727,7 +727,8 @@ class ControlNetPreprocessorNode(Node):
 
         depth_estimator = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").to("cuda")
         feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-hybrid-midas")
-
+        print("왜안됨? 시발?")
+        print("0000000000000000000000000000")
         image = self.inputs["image"]
 
         # 이미지가 PIL Image가 아니면 변환
