@@ -65,16 +65,6 @@ class ModelStrategy(ABC):
 #         ).images
 
 
-
-
-
-
-
-
-
-
-
-
 class LoraControlNetStrategy(ModelStrategy):
     def __init__(self, model_info, controlnet_info):
         self.model_info = model_info
@@ -132,11 +122,6 @@ class LoraControlNetStrategy(ModelStrategy):
         ).images
 
 
-
-
-
-
-
 class StableDiffusionStrategy(ModelStrategy):
     def load_model(self, model_path):
         return StableDiffusionPipeline.from_single_file(
@@ -183,7 +168,8 @@ class SDXLControlNetStrategy(ModelStrategy):
                     use_safetensors=True,
                 ).to(self.device)
                 controlnets.append(controlnet)
-            vae = AutoencoderKL.from_pretrained("./motive_v1/models/madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
+            vae = AutoencoderKL.from_pretrained("./motive_v1/models/madebyollin/sdxl-vae-fp16-fix",
+                                                torch_dtype=torch.float16)
 
             # Base 모델 로드
             self.base_model = StableDiffusionXLControlNetPipeline.from_pretrained(
@@ -296,9 +282,13 @@ class SDXLStrategy(ModelStrategy):
             self.base_model = DiffusionPipeline.from_pretrained(
                 model_path, torch_dtype=torch.float16, variant="fp16",
                 use_safetensors=True,
+                low_cpu_mem_usage=True,
             )
             self.base_model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.base_model.scheduler.config)
             self.base_model.to("cuda")
+            self.base_model.enable_model_cpu_offload()
+            self.base_model.enable_vae_slicing()
+
             refiner_path = model_path.replace("SDXL_base_model", "SDXL_refiner_model")
             print(f"SDXL Refiner 모델 로딩 중: {refiner_path}")
             self.refiner_model = DiffusionPipeline.from_pretrained(
@@ -308,9 +298,13 @@ class SDXLStrategy(ModelStrategy):
                 torch_dtype=torch.float16,
                 use_safetensors=True,
                 variant="fp16",
+                low_cpu_mem_usage=True,
+
             )
             self.refiner_model.scheduler = EulerDiscreteScheduler.from_config(self.refiner_model.scheduler.config)
             self.refiner_model.to("cuda")
+            self.refiner_model.enable_model_cpu_offload()
+            self.refiner_model.enable_vae_slicing()
 
             print("SDXL Base 및 Refiner 모델 로딩 성공")
         except Exception as e:
@@ -535,7 +529,7 @@ class ModelFactory:
             if model_info['app'] == 'BuildingModel':
                 if controlnet_info:
                     return LoraControlNetStrategy(model_info, controlnet_info)
-                else :
+                else:
                     return LoraStrategy(model_info)
             else:
                 return LoraStrategy(model_info)  # 다른 LoRA 모델들도 동일한 전략 사용
@@ -764,7 +758,6 @@ class ControlNetPreprocessorNode(Node):
         # image.save(output_path)
         return image
 
-
     def softedge_preprocess(self):
         from controlnet_aux import PidiNetDetector, HEDdetector
 
@@ -786,7 +779,8 @@ class ControlNetPreprocessorNode(Node):
 
     def segmentation_preprocess(self):
         image_processor = AutoImageProcessor.from_pretrained("./motive_v1/models/openmmlab/upernet-convnext-small")
-        image_segmentor = UperNetForSemanticSegmentation.from_pretrained("./motive_v1/models/openmmlab/upernet-convnext-small")
+        image_segmentor = UperNetForSemanticSegmentation.from_pretrained(
+            "./motive_v1/models/openmmlab/upernet-convnext-small")
         image = np.array(self.inputs["image"])
 
         pixel_values = image_processor(image, return_tensors="pt").pixel_values
