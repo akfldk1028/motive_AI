@@ -106,22 +106,18 @@ class LoraControlNetStrategy(ModelStrategy):
 
     def generate_image(self, pipe, prompt, negative_prompt, width, height, guidance_scale, num_inference_steps,
                        batch_size, **kwargs):
-        control_images = kwargs.get("image", [])
-        if not isinstance(control_images, list):
-            control_images = [control_images]
-        # ControlNet 모델 수 확인
-        num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
+        control_image = kwargs.get("image")
 
-        if len(control_images) != num_controlnets:
-            raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
+        if control_image is None:
+            raise ValueError("ControlNet 이미지가 제공되지 않았습니다.")
 
-        # batch_size만큼 control_images를 복제
-        batched_control_images = [image for image in control_images for _ in range(batch_size)]
+        # batch_size만큼 control_image를 복제
+        batched_control_image = [control_image] * batch_size
 
         return pipe(
             prompt=[prompt] * batch_size,
             negative_prompt=[negative_prompt] * batch_size if negative_prompt else None,
-            image=batched_control_images,
+            image=batched_control_image,
             width=width,
             height=height,
             guidance_scale=guidance_scale,
@@ -273,24 +269,18 @@ class SDXLControlNetStrategy(ModelStrategy):
         end_at_step = kwargs.get('end_at_step', 25)
         controlnet_conditioning_scale = 0.5  # recommended for good generalization
 
-        control_images = kwargs.get("image", [])
-        if not isinstance(control_images, list):
-            control_images = [control_images]
+        control_image = kwargs.get("image")
 
-        # ControlNet 모델 수 확인
-        num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
+        if control_image is None:
+            raise ValueError("ControlNet 이미지가 제공되지 않았습니다.")
 
-        if len(control_images) != num_controlnets:
-            raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
-
-        # batch_size만큼 control_images를 복제
-        batched_control_images = [image for image in control_images for _ in range(batch_size)]
-
+        # batch_size만큼 control_image를 복제
+        batched_control_image = [control_image] * batch_size
         # Base 모델로 이미지 생성
         latents = self.base_model(
             prompt=[prompt] * batch_size,
             negative_prompt=[negative_prompt] * batch_size,
-            image=batched_control_images,
+            image=batched_control_image,
             width=width,
             height=height,
             guidance_scale=guidance_scale,
@@ -533,24 +523,18 @@ class ControlNetStrategy(ModelStrategy):
 
     def generate_image(self, pipe, prompt, negative_prompt, width, height, guidance_scale, num_inference_steps,
                        batch_size, **kwargs):
-        control_images = kwargs.get("image", [])
-        print("Control images:", control_images)  # 디버그용 출력
-        if not isinstance(control_images, list):
-            control_images = [control_images]
+        control_image = kwargs.get("image")
 
-        # ControlNet 모델 수 확인
-        num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
+        if control_image is None:
+            raise ValueError("ControlNet 이미지가 제공되지 않았습니다.")
 
-        if len(control_images) != num_controlnets:
-            raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
-
-        # batch_size만큼 control_images를 복제
-        batched_control_images = [image for image in control_images for _ in range(batch_size)]
+        # batch_size만큼 control_image를 복제
+        batched_control_image = [control_image] * batch_size
 
         return pipe(
             prompt=[prompt] * batch_size,
             negative_prompt=[negative_prompt] * batch_size if negative_prompt else None,
-            image=batched_control_images,
+            image=batched_control_image,
             width=width,
             height=height,
             guidance_scale=guidance_scale,
@@ -653,8 +637,11 @@ class ImageGeneratorNode(Node):
             print(f"Control images input: {control_images}")
 
             if control_images is not None:
+                if isinstance(control_images, list):
+                    # 단일 ControlNet 모델을 사용하는 경우, 첫 번째 이미지만 사용
+                    control_images = control_images[0] if len(control_images) > 0 else None
                 generate_kwargs["image"] = control_images
-                # print(f"ControlNet 이미지가 적용됩니다. 이미지 개수: {len(control_images)}")
+                print(f"ControlNet 이미지가 적용됩니다. 이미지 타입: {type(control_images)}")
 
             print("Generate kwargs:", generate_kwargs)
             images = strategy.generate_image(pipe, **generate_kwargs)
