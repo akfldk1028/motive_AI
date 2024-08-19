@@ -183,7 +183,7 @@ class SDXLControlNetStrategy(ModelStrategy):
                     use_safetensors=True,
                 ).to(self.device)
                 controlnets.append(controlnet)
-            vae = AutoencoderKL.from_pretrained("./models/madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
+            vae = AutoencoderKL.from_pretrained("./motive_v1/models/madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
 
             # Base 모델 로드
             self.base_model = StableDiffusionXLControlNetPipeline.from_pretrained(
@@ -758,10 +758,10 @@ class ControlNetPreprocessorNode(Node):
 
         image = image.permute(0, 2, 3, 1).cpu().numpy()[0]
         image = Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8))
-        output_folder = './example'  # 저장할 폴더 경로
-        output_filename = 'saved_DDepth_image.png'  # 저장할 파일 이름
-        output_path = os.path.join(output_folder, output_filename)
-        image.save(output_path)
+        # output_folder = './example'  # 저장할 폴더 경로
+        # output_filename = 'saved_DDepth_image.png'  # 저장할 파일 이름
+        # output_path = os.path.join(output_folder, output_filename)
+        # image.save(output_path)
         return image
 
 
@@ -785,8 +785,8 @@ class ControlNetPreprocessorNode(Node):
         return control_image
 
     def segmentation_preprocess(self):
-        image_processor = AutoImageProcessor.from_pretrained("./models/openmmlab/upernet-convnext-small")
-        image_segmentor = UperNetForSemanticSegmentation.from_pretrained("./models/openmmlab/upernet-convnext-small")
+        image_processor = AutoImageProcessor.from_pretrained("./motive_v1/models/openmmlab/upernet-convnext-small")
+        image_segmentor = UperNetForSemanticSegmentation.from_pretrained("./motive_v1/models/openmmlab/upernet-convnext-small")
         image = np.array(self.inputs["image"])
 
         pixel_values = image_processor(image, return_tensors="pt").pixel_values
