@@ -3,21 +3,21 @@
 AI_MODELS = {
     'RealisticVision': {
         'type': 'checkpoint',
-        'path': './motive_v1/models/checkpoints/realisticVisionV60B1_v51HyperVAE.safetensors',
+        'path': './motive_v1/models/checkpoint/realisticVisionV60B1_v51HyperVAE.safetensors',
         'app': 'RealisticVision',
         'test': True,
         'sampler': ['ddpm_sde', 'euler_ancestral']
     },
     'Architecture RealMix': {
         'type': 'checkpoint',
-        'path': './motive_v1/models/checkpoints/architecturerealmix_v11.safetensors',
+        'path': './motive_v1/models/checkpoint/architecturerealmix_v11.safetensors',
         'app': 'ArchitectureRealMix',
         'test': True,
 
     },
     'ReRender': {
         'type': 'checkpoint',
-        'path': './motive_v1/models/checkpoints/raRenderArchitectureRender_v33.safetensors',
+        'path': './motive_v1/models/checkpoint/raRenderArchitectureRender_v33.safetensors',
         'app': 'ReRender',
         'test': True,
         'sampler': ['ddpm_sde', 'euler_ancestral']
