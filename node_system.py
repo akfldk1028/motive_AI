@@ -109,7 +109,14 @@ class LoraControlNetStrategy(ModelStrategy):
         control_images = kwargs.get("image", [])
         if not isinstance(control_images, list):
             control_images = [control_images] * batch_size
-
+        # ControlNet 모델 수에 맞게 이미지 조정
+        num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
+        if len(control_images) != num_controlnets:
+            if len(control_images) == 1:
+                control_images = control_images * num_controlnets
+            else:
+                raise ValueError(
+                    f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
         return pipe(
             prompt=[prompt] * batch_size,
             negative_prompt=[negative_prompt] * batch_size if negative_prompt else None,
@@ -269,6 +276,14 @@ class SDXLControlNetStrategy(ModelStrategy):
         if not isinstance(control_images, list):
             control_images = [control_images] * batch_size
 
+        # ControlNet 모델 수에 맞게 이미지 조정
+        num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
+        if len(control_images) != num_controlnets:
+            if len(control_images) == 1:
+                control_images = control_images * num_controlnets
+            else:
+                raise ValueError(
+                    f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
         # Base 모델로 이미지 생성
         latents = self.base_model(
             prompt=[prompt] * batch_size,
@@ -521,8 +536,14 @@ class ControlNetStrategy(ModelStrategy):
         if not isinstance(control_images, list):
             control_images = [control_images] * batch_size
 
-        if len(control_images) == 0:
-            raise ValueError("No control images provided for ControlNet")
+        # ControlNet 모델 수에 맞게 이미지 조정
+        num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
+        if len(control_images) != num_controlnets:
+            if len(control_images) == 1:
+                control_images = control_images * num_controlnets
+            else:
+                raise ValueError(
+                    f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
 
         return pipe(
             prompt=[prompt] * batch_size,
