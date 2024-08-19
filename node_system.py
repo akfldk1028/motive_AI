@@ -108,7 +108,7 @@ class LoraControlNetStrategy(ModelStrategy):
                        batch_size, **kwargs):
         control_images = kwargs.get("image", [])
         if not isinstance(control_images, list):
-            control_images = [control_images]
+            control_images = [control_images] * batch_size
 
         return pipe(
             prompt=[prompt] * batch_size,
@@ -267,7 +267,7 @@ class SDXLControlNetStrategy(ModelStrategy):
 
         control_images = kwargs.get("image", [])
         if not isinstance(control_images, list):
-            control_images = [control_images]
+            control_images = [control_images] * batch_size
 
         # Base 모델로 이미지 생성
         latents = self.base_model(
@@ -519,7 +519,7 @@ class ControlNetStrategy(ModelStrategy):
         control_images = kwargs.get("image", [])
         print("Control images:", control_images)  # 디버그용 출력
         if not isinstance(control_images, list):
-            control_images = [control_images]
+            control_images = [control_images] * batch_size
 
         if len(control_images) == 0:
             raise ValueError("No control images provided for ControlNet")
