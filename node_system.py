@@ -166,11 +166,11 @@ class SDXLControlNetStrategy(ModelStrategy):
                     torch_dtype=torch.float16,
                     variant="fp16",
                     use_safetensors=True,
-                )
+                ).to("cuda")
                 controlnets.append(controlnet)
             vae = AutoencoderKL.from_pretrained("./motive_v1/models/madebyollin/sdxl-vae-fp16-fix",
                                                 torch_dtype=torch.float16)
-            # self.refiner_model.enable_model_cpu_offload()
+            self.refiner_model.enable_model_cpu_offload()
 
             # Base 모델 로드
             self.base_model = StableDiffusionXLControlNetPipeline.from_pretrained(
@@ -550,7 +550,9 @@ class ModelLoaderNode(Node):
 
         try:
             strategy = ModelFactory.get_strategy(self.model_info, self.controlnet_info)
+            print("여기서오류??")
             pipe = strategy.load_model(model_path)
+            print("엥??")
             self.outputs["pipe"] = pipe
             self.outputs["strategy"] = strategy
             print(f"모델 로딩 성공. 파이프라인 타입: {type(pipe)}")
