@@ -235,35 +235,7 @@ class SDXLControlNetStrategy(ModelStrategy):
                 raise
 
             print("SDXL ControlNet Base 및 Refiner 모델 로딩 성공")
-
-
-            # # Base 모델 로드
-            # self.base_model = StableDiffusionXLControlNetPipeline.from_pretrained(
-            #     model_path,
-            #     controlnet=controlnets,
-            #     torch_dtype=torch.float16,
-            #     variant="fp16",
-            #     use_safetensors=True,
-            #     vae=vae,
-            # )
-            # # self.base_model.scheduler = UniPCMultistepScheduler.from_config(self.base_model.scheduler.config)
-            # self.base_model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.base_model.scheduler.config)
-            # self.base_model.enable_model_cpu_offload()
-            #
-            # # Refiner 모델 로드
-            # refiner_path = model_path.replace("SDXL_base_model", "SDXL_refiner_model")
-            # print(f"SDXL Refiner 모델 로딩 중: {refiner_path}")
-            # self.refiner_model = DiffusionPipeline.from_pretrained(
-            #     refiner_path,
-            #     text_encoder_2=self.base_model.text_encoder_2,
-            #     vae=self.base_model.vae,
-            #     torch_dtype=torch.float16,
-            #     use_safetensors=True,
-            #     variant="fp16",
-            # )
-            # self.refiner_model.scheduler = EulerDiscreteScheduler.from_config(self.refiner_model.scheduler.config)
-            # self.refiner_model.enable_model_cpu_offload()
-
+        #     cpu 없이돌리려면 GPU 하나더사야함
         except Exception as e:
             print(f"SDXL ControlNet 모델 로딩 중 오류 발생: {str(e)}")
             print(f"오류 타입: {type(e).__name__}")
@@ -928,6 +900,10 @@ class ControlNetPreprocessorNode(Node):
 
     def depth_preprocess(self):
         image = self.inputs["image"]
+        # PIL Image 객체인지 확인하고, 아니라면 변환합니다.
+        if not isinstance(image, Image.Image):
+            image = Image.fromarray(image)
+
         image = image.resize((self.width, self.height))
 
         # GPU가 있으면 'cuda'를 사용하고, 그렇지 않으면 'cpu'를 사용합니다.
