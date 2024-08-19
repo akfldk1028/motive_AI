@@ -1018,11 +1018,6 @@ def create_graph_for_model(model_name, prompt, negative_prompt, width, height, g
     if not model_info:
         raise ValueError(f"알 수 없는 모델: {model_name}")
 
-    model_loader = ModelLoaderNode("model_loader", model_info, controlnet_info)
-    text_prompt = TextPromptNode("text_prompt")
-
-    graph.add_node(model_loader)
-    graph.add_node(text_prompt)
 
     control_images = []
     if img2img_bool and init_image is not None and controlnet_info:
@@ -1039,6 +1034,11 @@ def create_graph_for_model(model_name, prompt, negative_prompt, width, height, g
 
     print(control_images)
     print("-------------------------------------")
+    model_loader = ModelLoaderNode("model_loader", model_info, controlnet_info)
+    text_prompt = TextPromptNode("text_prompt")
+
+    graph.add_node(model_loader)
+    graph.add_node(text_prompt)
 
     # ImageGeneratorNode를 여기서 생성
     image_generator = ImageGeneratorNode("image_generator", model_info)
