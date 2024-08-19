@@ -115,15 +115,14 @@ class LoraControlNetStrategy(ModelStrategy):
 
         # 입력된 이미지 수가 batch_size와 일치하는지 확인
         if len(control_images) == batch_size:
-            # 각 배치 항목에 대해 ControlNet 모델 수만큼 이미지 복제
-            control_images = [img for img in control_images for _ in range(num_controlnets)]
+            # 각 배치 항목에 대해 동일한 이미지를 사용
+            control_images = control_images * num_controlnets
         elif len(control_images) == num_controlnets:
-            # 이미 ControlNet 모델 수와 일치하면 batch_size만큼 복제
-            control_images = control_images * batch_size
+            # 이미 ControlNet 모델 수와 일치하면 그대로 사용
+            pass
         else:
             raise ValueError(
                 f"ControlNet 이미지 수({len(control_images)})가 batch_size({batch_size}) 또는 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
-
 
         return pipe(
             prompt=[prompt] * batch_size,
@@ -289,11 +288,11 @@ class SDXLControlNetStrategy(ModelStrategy):
 
         # 입력된 이미지 수가 batch_size와 일치하는지 확인
         if len(control_images) == batch_size:
-            # 각 배치 항목에 대해 ControlNet 모델 수만큼 이미지 복제
-            control_images = [img for img in control_images for _ in range(num_controlnets)]
+            # 각 배치 항목에 대해 동일한 이미지를 사용
+            control_images = control_images * num_controlnets
         elif len(control_images) == num_controlnets:
-            # 이미 ControlNet 모델 수와 일치하면 batch_size만큼 복제
-            control_images = control_images * batch_size
+            # 이미 ControlNet 모델 수와 일치하면 그대로 사용
+            pass
         else:
             raise ValueError(
                 f"ControlNet 이미지 수({len(control_images)})가 batch_size({batch_size}) 또는 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
@@ -555,11 +554,11 @@ class ControlNetStrategy(ModelStrategy):
 
         # 입력된 이미지 수가 batch_size와 일치하는지 확인
         if len(control_images) == batch_size:
-            # 각 배치 항목에 대해 ControlNet 모델 수만큼 이미지 복제
-            control_images = [img for img in control_images for _ in range(num_controlnets)]
+            # 각 배치 항목에 대해 동일한 이미지를 사용
+            control_images = control_images * num_controlnets
         elif len(control_images) == num_controlnets:
-            # 이미 ControlNet 모델 수와 일치하면 batch_size만큼 복제
-            control_images = control_images * batch_size
+            # 이미 ControlNet 모델 수와 일치하면 그대로 사용
+            pass
         else:
             raise ValueError(
                 f"ControlNet 이미지 수({len(control_images)})가 batch_size({batch_size}) 또는 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
