@@ -783,10 +783,6 @@ class ControlNetPreprocessorNode(Node):
 
         image = image.permute(0, 2, 3, 1).cpu().numpy()[0]
         image = Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8))
-        # output_folder = './example'  # 저장할 폴더 경로
-        # output_filename = 'saved_DDepth_image.png'  # 저장할 파일 이름
-        # output_path = os.path.join(output_folder, output_filename)
-        # image.save(output_path)
         return image
 
     def softedge_preprocess(self):
@@ -936,7 +932,10 @@ class LoadImageNode(Node):
             else:
                 raise ValueError(f"Unsupported image input type: {type(image_input)}")
 
-            self.outputs["image"] = image
+            image_np = np.array(image)
+            self.outputs["image"] = image_np
+
+            # self.outputs["image"] = image
             print(f"LoadImageNode successfully loaded image of size: {image.size}")
         except Exception as e:
             print(f"Error in LoadImageNode: {str(e)}")
