@@ -526,11 +526,8 @@ class ModelFactory:
                     return StableDiffusionStrategy()
 
         elif model_info['type'] == 'lora':
-            if model_info['app'] == 'BuildingModel':
-                if controlnet_info:
-                    return LoraControlNetStrategy(model_info, controlnet_info)
-                else:
-                    return LoraStrategy(model_info)
+            if controlnet_info:
+                return LoraControlNetStrategy(model_info, controlnet_info)
             else:
                 return LoraStrategy(model_info)  # 다른 LoRA 모델들도 동일한 전략 사용
         else:
