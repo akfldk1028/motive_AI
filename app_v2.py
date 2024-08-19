@@ -260,8 +260,8 @@ def get_model_name_from_id(ai_tool_id):
 
 if __name__ == '__main__':
     logger.info(f"Starting Flask server with BASE_URL: {base_url}")
-    # app.run(host='0.0.0.0', port=5000)
-    app.run(host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'key.pem'))
+    app.run(host='0.0.0.0', port=5000)
+    # app.run(host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'key.pem'))
 
 
     # logger.info("Starting Flask server...")
