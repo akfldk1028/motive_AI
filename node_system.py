@@ -790,11 +790,17 @@ class ControlNetPreprocessorNode(Node):
         print(f"  Processed image: {self.outputs['processed_image']}")
 
     def sdxl_depth_preprocess(self):
-        from transformers import DPTFeatureExtractor, DPTForDepthEstimation
+        from transformers import DPTFeatureExtractor, DPTForDepthEstimation,DPTImageProcessor
+        import numpy as np
+        import torch
+        from PIL import Image
+
         print("0000000000000000000000000000")
 
         depth_estimator = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").to("cuda")
-        feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-hybrid-midas")
+        # feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-hybrid-midas")
+        feature_extractor = DPTImageProcessor.from_pretrained("Intel/dpt-hybrid-midas")
+
         print("왜안됨? 시발?")
         print("0000000000000000000000000000")
         image = self.inputs["image"]
@@ -808,12 +814,16 @@ class ControlNetPreprocessorNode(Node):
 
         # 이미지 타입 체크 및 변환
         # PNG 파일 처리
+        # 이미지 타입 체크 및 변환
         if isinstance(image, Image.Image):
             print(f"Input image mode: {image.mode}")
-            if image.mode == 'RGBA':
+            if image.mode == 'RGBA':  # RGBA 모드일 때 RGB로 변환
                 print("Converting RGBA to RGB")
                 image = image.convert('RGB')
         elif isinstance(image, np.ndarray):
+            if image.ndim == 2:  # 2D 이미지라면 3D로 확장
+                print("Expanding 2D image to 3D by duplicating channels")
+                image = np.stack([image] * 3, axis=-1)  # H x W -> H x W x 3
             if image.shape[-1] == 4:  # RGBA
                 print("Converting RGBA array to RGB")
                 image = image[..., :3]
