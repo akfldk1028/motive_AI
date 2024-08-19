@@ -106,6 +106,7 @@ class LoraControlNetStrategy(ModelStrategy):
 
     def generate_image(self, pipe, prompt, negative_prompt, width, height, guidance_scale, num_inference_steps,
                        batch_size, **kwargs):
+
         control_images = kwargs.get("image", [])
         if not isinstance(control_images, list):
             control_images = [control_images]
@@ -212,6 +213,7 @@ class SDXLControlNetStrategy(ModelStrategy):
 
         if self.base_model is None or self.refiner_model is None:
             raise ValueError("SDXL 모델이 로드되지 않았습니다. load_model을 먼저 호출하세요.")
+        torch.cuda.empty_cache()
 
         width, height = self.get_optimal_resolution(width, height)
         print(f"선택된 해상도: {width}x{height}")
@@ -315,6 +317,7 @@ class SDXLStrategy(ModelStrategy):
                        batch_size, seed=None, control_after_generate="fixed"):
         if self.base_model is None or self.refiner_model is None:
             raise ValueError("SDXL 모델이 로드되지 않았습니다. load_model을 먼저 호출하세요.")
+        torch.cuda.empty_cache()
 
         width, height = self.get_optimal_resolution(width, height)
         print(f"선택된 해상도: {width}x{height}")
