@@ -691,13 +691,14 @@ class ImageEncoderNode(Node):
 
 
 class ControlNetPreprocessorNode(Node):
-    def __init__(self, name, preprocessor_type, imgtoimg):
+    def __init__(self, name, preprocessor_type, imgtoimg, width, height):
         super().__init__(name)
         self.preprocessor_type = preprocessor_type
         self.inputs = {"image": imgtoimg}
         self.outputs = {"processed_image": None}
         self.depth_estimator = None
-
+        self.width = width
+        self.height = height
     def process(self):
         print(f"ControlNetPreprocessorNode processing with type: {self.preprocessor_type}")
         if self.inputs["image"] is None:
@@ -732,13 +733,19 @@ class ControlNetPreprocessorNode(Node):
         feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-hybrid-midas")
 
         image = self.inputs["image"]
+
+        # 이미지가 PIL Image가 아니면 변환
+        if not isinstance(image, Image.Image):
+            image = Image.fromarray(image.astype('uint8'), 'RGB')
+        image = image.resize((self.width, self.height))
+
         image = feature_extractor(images=image, return_tensors="pt").pixel_values.to("cuda")
         with torch.no_grad(), torch.autocast("cuda"):
             depth_map = depth_estimator(image).predicted_depth
 
         depth_map = torch.nn.functional.interpolate(
             depth_map.unsqueeze(1),
-            size=(1024, 1024),
+            size=(self.height, self.width),
             mode="bicubic",
             align_corners=False,
         )
@@ -803,6 +810,8 @@ class ControlNetPreprocessorNode(Node):
 
     def canny_preprocess(self):
         image = np.array(self.inputs["image"])
+        image = cv2.resize(image, (self.width, self.height))
+
         low_threshold = 100
         high_threshold = 200
 
@@ -811,14 +820,16 @@ class ControlNetPreprocessorNode(Node):
         image = np.concatenate([image, image, image], axis=2)
         control_image = Image.fromarray(image)
 
-        output_folder = './example'  # 저장할 폴더 경로
-        output_filename = 'saved_canny_image.png'  # 저장할 파일 이름
-        output_path = os.path.join(output_folder, output_filename)
-        control_image.save(output_path)
+        # output_folder = './example'  # 저장할 폴더 경로
+        # output_filename = 'saved_canny_image.png'  # 저장할 파일 이름
+        # output_path = os.path.join(output_folder, output_filename)
+        # control_image.save(output_path)
         return control_image
 
     def depth_preprocess(self):
         image = self.inputs["image"]
+        image = image.resize((self.width, self.height))
+
         # GPU가 있으면 'cuda'를 사용하고, 그렇지 않으면 'cpu'를 사용합니다.
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # 모델을 로드할 때 'device'를 명시적으로 설정합니다.
@@ -928,7 +939,7 @@ def create_graph_for_model(model_name, prompt, negative_prompt, width, height, g
 
         for i, control in enumerate(controlnet_info):
             print(control)
-            preprocessor = ControlNetPreprocessorNode(f"preprocessor_{i}", control['preprocessor'], init_image)
+            preprocessor = ControlNetPreprocessorNode(f"preprocessor_{i}", control['preprocessor'], init_image, width, height)
             graph.add_node(preprocessor)
             graph.connect(image_loader, "image", preprocessor, "image")
             control_images.append(preprocessor)
