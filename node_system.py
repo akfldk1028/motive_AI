@@ -737,20 +737,19 @@ class ControlNetPreprocessorNode(Node):
 
         print(f"Input image type: {type(image)}")
 
+        # 이미지 타입 체크 및 변환
         if isinstance(image, np.ndarray):
             print(f"Input image shape: {image.shape}")
             print(f"Input image dtype: {image.dtype}")
-        elif isinstance(image, Image.Image):
-            print(f"Input image size: {image.size}")
-            print(f"Input image mode: {image.mode}")
-
-        # 이미지가 PIL Image가 아니면 변환
-        if not isinstance(image, Image.Image):
-            print("Converting image to PIL Image")
             if len(image.shape) == 2:
                 print("Input is 2D array, converting to 3D")
                 image = np.stack((image,) * 3, axis=-1)
             image = Image.fromarray(image.astype('uint8'), 'RGB')
+        elif isinstance(image, Image.Image):
+            print(f"Input image size: {image.size}")
+            print(f"Input image mode: {image.mode}")
+        else:
+            raise ValueError("Unsupported image type")
 
         print(f"Image size before resize: {image.size}")
         image = image.resize((self.width, self.height))
