@@ -113,21 +113,16 @@ class LoraControlNetStrategy(ModelStrategy):
         # ControlNet 모델 수 확인
         num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
 
-        # 입력된 이미지 수가 batch_size와 일치하는지 확인
-        if len(control_images) == batch_size:
-            # 각 배치 항목에 대해 동일한 이미지를 사용
-            control_images = control_images * num_controlnets
-        elif len(control_images) == num_controlnets:
-            # 이미 ControlNet 모델 수와 일치하면 그대로 사용
-            pass
-        else:
-            raise ValueError(
-                f"ControlNet 이미지 수({len(control_images)})가 batch_size({batch_size}) 또는 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
+        if len(control_images) != num_controlnets:
+            raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
+
+        # batch_size만큼 control_images를 반복
+        batched_control_images = control_images * batch_size
 
         return pipe(
             prompt=[prompt] * batch_size,
             negative_prompt=[negative_prompt] * batch_size if negative_prompt else None,
-            image=control_images,
+            image=batched_control_images,
             width=width,
             height=height,
             guidance_scale=guidance_scale,
@@ -286,22 +281,16 @@ class SDXLControlNetStrategy(ModelStrategy):
         # ControlNet 모델 수 확인
         num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
 
-        # 입력된 이미지 수가 batch_size와 일치하는지 확인
-        if len(control_images) == batch_size:
-            # 각 배치 항목에 대해 동일한 이미지를 사용
-            control_images = control_images * num_controlnets
-        elif len(control_images) == num_controlnets:
-            # 이미 ControlNet 모델 수와 일치하면 그대로 사용
-            pass
-        else:
-            raise ValueError(
-                f"ControlNet 이미지 수({len(control_images)})가 batch_size({batch_size}) 또는 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
+        if len(control_images) != num_controlnets:
+            raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
 
+        # batch_size만큼 control_images를 반복
+        batched_control_images = control_images * batch_size
         # Base 모델로 이미지 생성
         latents = self.base_model(
             prompt=[prompt] * batch_size,
             negative_prompt=[negative_prompt] * batch_size,
-            image=control_images,
+            image=batched_control_images,
             width=width,
             height=height,
             guidance_scale=guidance_scale,
@@ -552,21 +541,16 @@ class ControlNetStrategy(ModelStrategy):
         # ControlNet 모델 수 확인
         num_controlnets = len(pipe.controlnet) if isinstance(pipe.controlnet, list) else 1
 
-        # 입력된 이미지 수가 batch_size와 일치하는지 확인
-        if len(control_images) == batch_size:
-            # 각 배치 항목에 대해 동일한 이미지를 사용
-            control_images = control_images * num_controlnets
-        elif len(control_images) == num_controlnets:
-            # 이미 ControlNet 모델 수와 일치하면 그대로 사용
-            pass
-        else:
-            raise ValueError(
-                f"ControlNet 이미지 수({len(control_images)})가 batch_size({batch_size}) 또는 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
+        if len(control_images) != num_controlnets:
+            raise ValueError(f"ControlNet 이미지 수({len(control_images)})가 ControlNet 모델 수({num_controlnets})와 일치하지 않습니다.")
+
+        # batch_size만큼 control_images를 반복
+        batched_control_images = control_images * batch_size
 
         return pipe(
             prompt=[prompt] * batch_size,
             negative_prompt=[negative_prompt] * batch_size if negative_prompt else None,
-            image=control_images,
+            image=batched_control_images,
             width=width,
             height=height,
             guidance_scale=guidance_scale,
@@ -1076,8 +1060,12 @@ def create_graph_for_model(model_name, prompt, negative_prompt, width, height, g
 
     if control_images:
         print(f"Connecting {len(control_images)} control image(s) to ImageGeneratorNode")
-        control_images_list = [node.outputs["processed_image"] for node in control_images]
-        image_generator.inputs["control_images"] = control_images_list
+        if len(control_images) == 1:
+            graph.connect(control_images[0], "processed_image", image_generator, "control_images")
+        else:
+            # 여러 개의 control image가 있는 경우 처리
+            control_images_list = [node.outputs["processed_image"] for node in control_images]
+            image_generator.inputs["control_images"] = control_images_list
     # if control_images:
     #     print(f"Connecting {len(control_images)} control image(s) to ImageGeneratorNode")
     #     if len(control_images) == 1:
