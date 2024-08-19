@@ -160,46 +160,110 @@ class SDXLControlNetStrategy(ModelStrategy):
         try:
             # ControlNet 모델 로드
             controlnets = []
-            for control_info in self.controlnet_info:
-                controlnet = ControlNetModel.from_pretrained(
-                    control_info['model_path'],
+            for i, control_info in enumerate(self.controlnet_info):
+                try:
+                    print(f"ControlNet {i + 1} 로딩 중: {control_info['model_path']}")
+                    controlnet = ControlNetModel.from_pretrained(
+                        control_info['model_path'],
+                        torch_dtype=torch.float16,
+                        variant="fp16",
+                        use_safetensors=True,
+                    ).to("cuda")
+                    controlnets.append(controlnet)
+                    print(f"ControlNet {i + 1} 로딩 완료")
+                except Exception as e:
+                    print(f"ControlNet {i + 1} 로딩 실패: {str(e)}")
+                    raise
+
+            try:
+                print("VAE 로딩 중")
+                vae = AutoencoderKL.from_pretrained("./motive_v1/models/madebyollin/sdxl-vae-fp16-fix",
+                                                    torch_dtype=torch.float16)
+                print("VAE 로딩 완료")
+            except Exception as e:
+                print(f"VAE 로딩 실패: {str(e)}")
+                raise
+
+            try:
+                print("Base 모델 로딩 중")
+                self.base_model = StableDiffusionXLControlNetPipeline.from_pretrained(
+                    model_path,
+                    controlnet=controlnets,
                     torch_dtype=torch.float16,
                     variant="fp16",
                     use_safetensors=True,
-                ).to("cuda")
-                controlnets.append(controlnet)
-            vae = AutoencoderKL.from_pretrained("./motive_v1/models/madebyollin/sdxl-vae-fp16-fix",
-                                                torch_dtype=torch.float16)
-            self.refiner_model.enable_model_cpu_offload()
+                    vae=vae,
+                )
+                print("Base 모델 로딩 완료")
+            except Exception as e:
+                print(f"Base 모델 로딩 실패: {str(e)}")
+                raise
 
-            # Base 모델 로드
-            self.base_model = StableDiffusionXLControlNetPipeline.from_pretrained(
-                model_path,
-                controlnet=controlnets,
-                torch_dtype=torch.float16,
-                variant="fp16",
-                use_safetensors=True,
-                vae=vae,
-            )
-            # self.base_model.scheduler = UniPCMultistepScheduler.from_config(self.base_model.scheduler.config)
-            self.base_model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.base_model.scheduler.config)
-            self.base_model.enable_model_cpu_offload()
+            try:
+                print("Base 모델 스케줄러 설정 중")
+                self.base_model.scheduler = EulerAncestralDiscreteScheduler.from_config(
+                    self.base_model.scheduler.config)
+                self.base_model.enable_model_cpu_offload()
+                print("Base 모델 스케줄러 설정 완료")
+            except Exception as e:
+                print(f"Base 모델 스케줄러 설정 실패: {str(e)}")
+                raise
 
-            # Refiner 모델 로드
-            refiner_path = model_path.replace("SDXL_base_model", "SDXL_refiner_model")
-            print(f"SDXL Refiner 모델 로딩 중: {refiner_path}")
-            self.refiner_model = DiffusionPipeline.from_pretrained(
-                refiner_path,
-                text_encoder_2=self.base_model.text_encoder_2,
-                vae=self.base_model.vae,
-                torch_dtype=torch.float16,
-                use_safetensors=True,
-                variant="fp16",
-            )
-            self.refiner_model.scheduler = EulerDiscreteScheduler.from_config(self.refiner_model.scheduler.config)
-            self.refiner_model.enable_model_cpu_offload()
+            try:
+                print("Refiner 모델 로딩 중")
+                refiner_path = model_path.replace("SDXL_base_model", "SDXL_refiner_model")
+                self.refiner_model = DiffusionPipeline.from_pretrained(
+                    refiner_path,
+                    text_encoder_2=self.base_model.text_encoder_2,
+                    vae=self.base_model.vae,
+                    torch_dtype=torch.float16,
+                    use_safetensors=True,
+                    variant="fp16",
+                )
+                print("Refiner 모델 로딩 완료")
+            except Exception as e:
+                print(f"Refiner 모델 로딩 실패: {str(e)}")
+                raise
+
+            try:
+                print("Refiner 모델 스케줄러 설정 중")
+                self.refiner_model.scheduler = EulerDiscreteScheduler.from_config(self.refiner_model.scheduler.config)
+                self.refiner_model.enable_model_cpu_offload()
+                print("Refiner 모델 스케줄러 설정 완료")
+            except Exception as e:
+                print(f"Refiner 모델 스케줄러 설정 실패: {str(e)}")
+                raise
 
             print("SDXL ControlNet Base 및 Refiner 모델 로딩 성공")
+
+
+            # # Base 모델 로드
+            # self.base_model = StableDiffusionXLControlNetPipeline.from_pretrained(
+            #     model_path,
+            #     controlnet=controlnets,
+            #     torch_dtype=torch.float16,
+            #     variant="fp16",
+            #     use_safetensors=True,
+            #     vae=vae,
+            # )
+            # # self.base_model.scheduler = UniPCMultistepScheduler.from_config(self.base_model.scheduler.config)
+            # self.base_model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.base_model.scheduler.config)
+            # self.base_model.enable_model_cpu_offload()
+            #
+            # # Refiner 모델 로드
+            # refiner_path = model_path.replace("SDXL_base_model", "SDXL_refiner_model")
+            # print(f"SDXL Refiner 모델 로딩 중: {refiner_path}")
+            # self.refiner_model = DiffusionPipeline.from_pretrained(
+            #     refiner_path,
+            #     text_encoder_2=self.base_model.text_encoder_2,
+            #     vae=self.base_model.vae,
+            #     torch_dtype=torch.float16,
+            #     use_safetensors=True,
+            #     variant="fp16",
+            # )
+            # self.refiner_model.scheduler = EulerDiscreteScheduler.from_config(self.refiner_model.scheduler.config)
+            # self.refiner_model.enable_model_cpu_offload()
+
         except Exception as e:
             print(f"SDXL ControlNet 모델 로딩 중 오류 발생: {str(e)}")
             print(f"오류 타입: {type(e).__name__}")
