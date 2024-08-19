@@ -179,11 +179,10 @@ class SDXLControlNetStrategy(ModelStrategy):
                 variant="fp16",
                 use_safetensors=True,
                 vae=vae,
-            ).to("cuda")
+            )
             # self.base_model.scheduler = UniPCMultistepScheduler.from_config(self.base_model.scheduler.config)
-            # self.base_model.enable_model_cpu_offload()
-
             self.base_model.scheduler = EulerAncestralDiscreteScheduler.from_config(self.base_model.scheduler.config)
+            self.base_model.enable_model_cpu_offload()
 
             # Refiner 모델 로드
             refiner_path = model_path.replace("SDXL_base_model", "SDXL_refiner_model")
@@ -195,8 +194,9 @@ class SDXLControlNetStrategy(ModelStrategy):
                 torch_dtype=torch.float16,
                 use_safetensors=True,
                 variant="fp16",
-            ).to("cuda")
+            )
             self.refiner_model.scheduler = EulerDiscreteScheduler.from_config(self.refiner_model.scheduler.config)
+            self.refiner_model.enable_model_cpu_offload()
 
             print("SDXL ControlNet Base 및 Refiner 모델 로딩 성공")
         except Exception as e:
