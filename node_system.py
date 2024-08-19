@@ -654,7 +654,7 @@ class ImageGeneratorNode(Node):
 
             if control_images is not None:
                 generate_kwargs["image"] = control_images
-                print(f"ControlNet 이미지가 적용됩니다. 이미지 개수: {len(control_images)}")
+                # print(f"ControlNet 이미지가 적용됩니다. 이미지 개수: {len(control_images)}")
 
             print("Generate kwargs:", generate_kwargs)
             images = strategy.generate_image(pipe, **generate_kwargs)
