@@ -724,6 +724,7 @@ class ControlNetPreprocessorNode(Node):
 
     def sdxl_depth_preprocess(self):
         from transformers import DPTFeatureExtractor, DPTForDepthEstimation
+        print("0000000000000000000000000000")
 
         depth_estimator = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").to("cuda")
         feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-hybrid-midas")
@@ -739,22 +740,21 @@ class ControlNetPreprocessorNode(Node):
         print(f"Input image type: {type(image)}")
 
         # 이미지 타입 체크 및 변환
-        if isinstance(image, np.ndarray):
-            print(f"Input image shape: {image.shape}")
-            print(f"Input image dtype: {image.dtype}")
-            if len(image.shape) == 2:
-                print("Input is 2D array, converting to 3D")
-                image = np.stack((image,) * 3, axis=-1)
-            image = Image.fromarray(image.astype('uint8'), 'RGB')
-        elif isinstance(image, Image.Image):
-            print(f"Input image size: {image.size}")
+        # PNG 파일 처리
+        if isinstance(image, Image.Image):
             print(f"Input image mode: {image.mode}")
-        else:
-            raise ValueError("Unsupported image type")
+            if image.mode == 'RGBA':
+                print("Converting RGBA to RGB")
+                image = image.convert('RGB')
+        elif isinstance(image, np.ndarray):
+            if image.shape[-1] == 4:  # RGBA
+                print("Converting RGBA array to RGB")
+                image = image[..., :3]
+            image = Image.fromarray(image)
 
-        print(f"Image size before resize: {image.size}")
         image = image.resize((self.width, self.height))
-        print(f"Image size after resize: {image.size}")
+        print(f"Resized image size: {image.size}")
+
 
         print("Extracting features")
         try:
