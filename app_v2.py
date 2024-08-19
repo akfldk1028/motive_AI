@@ -10,7 +10,8 @@ import base64
 from config import get_model_info, get_controlnet_info
 from PIL import Image
 import io
-
+import torch
+import gc
 # 추가로 고려할 수 있는 개선 사항:
 #
 # 재시도 메커니즘: 작업 실패 시 자동으로 재시도하는 로직을 추가할 수 있습니다.
@@ -85,6 +86,8 @@ class JobQueue:
                 self.update_django_status(request_id, JobStatus.FAILED, error=str(e))
             finally:
                 state.set_current_job(None)
+                torch.cuda.empty_cache()
+                gc.collect()  # Explicitly invoke garbage collection
             self.queue.task_done()
 
     def enqueue(self, graph, request_id):

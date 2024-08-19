@@ -766,12 +766,6 @@ class ControlNetPreprocessorNode(Node):
         print("Moving image to CUDA")
         image = image_features.pixel_values.to("cuda")
 
-        print("Estimating depth")
-        with torch.no_grad(), torch.autocast("cuda"):
-            depth_map = depth_estimator(image).predicted_depth
-
-        print(f"Depth map shape: {depth_map.shape}")
-
 
 
         with torch.no_grad(), torch.autocast("cuda"):
