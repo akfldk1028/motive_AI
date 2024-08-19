@@ -653,17 +653,8 @@ class ImageGeneratorNode(Node):
             print(f"Control images input: {control_images}")
 
             if control_images is not None:
-                if isinstance(control_images, Image.Image):
-                    generate_kwargs["image"] = control_images
-                    print(f"ControlNet 이미지가 적용됩니다.")
-                elif isinstance(control_images, list):
-                    generate_kwargs["image"] = control_images
-                    print(f"ControlNet 이미지가 적용됩니다. 이미지 개수: {len(control_images)}")
-                else:
-                    print(f"Warning: Unexpected control_images type: {type(control_images)}")
-                    raise ValueError("Unexpected control_images type")
-            else:
-                print("No ControlNet images provided")
+                generate_kwargs["image"] = control_images
+                print(f"ControlNet 이미지가 적용됩니다. 이미지 개수: {len(control_images)}")
 
             print("Generate kwargs:", generate_kwargs)
             images = strategy.generate_image(pipe, **generate_kwargs)
