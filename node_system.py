@@ -106,7 +106,6 @@ class LoraControlNetStrategy(ModelStrategy):
 
     def generate_image(self, pipe, prompt, negative_prompt, width, height, guidance_scale, num_inference_steps,
                        batch_size, **kwargs):
-
         control_images = kwargs.get("image", [])
         if not isinstance(control_images, list):
             control_images = [control_images]
@@ -213,7 +212,6 @@ class SDXLControlNetStrategy(ModelStrategy):
 
         if self.base_model is None or self.refiner_model is None:
             raise ValueError("SDXL 모델이 로드되지 않았습니다. load_model을 먼저 호출하세요.")
-        torch.cuda.empty_cache()
 
         width, height = self.get_optimal_resolution(width, height)
         print(f"선택된 해상도: {width}x{height}")
@@ -317,7 +315,6 @@ class SDXLStrategy(ModelStrategy):
                        batch_size, seed=None, control_after_generate="fixed"):
         if self.base_model is None or self.refiner_model is None:
             raise ValueError("SDXL 모델이 로드되지 않았습니다. load_model을 먼저 호출하세요.")
-        torch.cuda.empty_cache()
 
         width, height = self.get_optimal_resolution(width, height)
         print(f"선택된 해상도: {width}x{height}")
@@ -728,43 +725,18 @@ class ControlNetPreprocessorNode(Node):
     def sdxl_depth_preprocess(self):
         from transformers import DPTFeatureExtractor, DPTForDepthEstimation
 
-        print("Starting sdxl_depth_preprocess method")
-
         depth_estimator = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").to("cuda")
         feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-hybrid-midas")
 
         image = self.inputs["image"]
-        print(f"Input image type: {type(image)}")
-
-        if isinstance(image, np.ndarray):
-            print(f"Input image shape: {image.shape}")
-            print(f"Input image dtype: {image.dtype}")
-        elif isinstance(image, Image.Image):
-            print(f"Input image size: {image.size}")
-            print(f"Input image mode: {image.mode}")
 
         # 이미지가 PIL Image가 아니면 변환
-        if not isinstance(image, Image.Image):
-            print("Converting image to PIL Image")
-            if len(image.shape) == 2:
-                print("Input is 2D array, converting to 3D")
-                image = np.stack((image,) * 3, axis=-1)
-            image = Image.fromarray(image.astype('uint8'), 'RGB')
+        # if not isinstance(image, Image.Image):
+        #     image = Image.fromarray(image.astype('uint8'), 'RGB')
+        # image = image.resize((self.width, self.height))
 
-        print(f"Image size before resize: {image.size}")
-        image = image.resize((self.width, self.height))
-        print(f"Image size after resize: {image.size}")
+        image = feature_extractor(images=image, return_tensors="pt").pixel_values.to("cuda")
 
-        print("Extracting features")
-        try:
-            image_features = feature_extractor(images=image, return_tensors="pt")
-            print(f"Feature extraction successful. Shape: {image_features.pixel_values.shape}")
-        except Exception as e:
-            print(f"Error during feature extraction: {str(e)}")
-            raise
-
-        print("Moving image to CUDA")
-        image = image_features.pixel_values.to("cuda")
 
 
 
